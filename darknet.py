@@ -225,17 +225,19 @@ def remove_negatives(detections, class_names, num):
 
 def remove_negatives_faster(detections, class_names, num):
     """
-    Faster version of remove_negatives (very useful when using yolo9000)
+    Optimized version of remove_negatives (useful for YOLO9000).
+    This approach reduces redundant attribute accesses.
     """
-    predictions = []
-    for j in range(num):
-        if detections[j].best_class_idx == -1:
-            continue
-        name = class_names[detections[j].best_class_idx]
-        bbox = detections[j].bbox
-        bbox = (bbox.x, bbox.y, bbox.w, bbox.h)
-        predictions.append((name, detections[j].prob[detections[j].best_class_idx], bbox))
+    predictions = [
+        (
+            class_names[detection.best_class_idx],
+            detection.prob[detection.best_class_idx],
+            (detection.bbox.x, detection.bbox.y, detection.bbox.w, detection.bbox.h)
+        )
+        for detection in detections[:num] if detection.best_class_idx != -1
+    ]
     return predictions
+
 
 
 def detect_image(network, class_names, image, thresh=.5, hier_thresh=.5, nms=.45):
